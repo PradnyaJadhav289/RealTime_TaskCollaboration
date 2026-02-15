@@ -1,0 +1,68 @@
+/* ===== PAGE BACKGROUND ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #eef2ff, #dbeafe);
+}
+
+/* ===== FORM CARD ===== */
+form {
+  width: 350px;
+  margin: 80px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== TITLE ===== */
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* ===== INPUT FIELD ===== */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* INPUT FOCUS EFFECT */
+input:focus {
+  outline: none;
+  border-color: #4f6ef7;
+  box-shadow: 0 0 6px rgba(79, 110, 247, 0.3);
+}
+
+/* ===== BUTTON ===== */
+button {
+  margin-top: 15px;
+  padding: 12px;
+  background: #4f6ef7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* BUTTON HOVER */
+button:hover {
+  background: #3b55d9;
+  transform: translateY(-2px);
+}
+
+/* BUTTON CLICK */
+button:active {
+  transform: scale(0.98);
+}

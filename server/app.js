@@ -4,6 +4,12 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
 
+// ==========================
+// Routes
+// ==========================
+import authRoutes from "./routes/authRoutes.js";
+
+
 dotenv.config();
 
 const app = express();
@@ -27,6 +33,9 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+app.use("/api/auth", authRoutes);
 
 
 // ==========================
