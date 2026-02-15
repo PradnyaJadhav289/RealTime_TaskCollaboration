@@ -1,0 +1,74 @@
+.dashboard {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* HEADER */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-box {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.user-box button {
+  padding: 6px 12px;
+  border: none;
+  background: #4f6ef7;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* CREATE BOARD */
+.create-board {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.create-board input {
+  padding: 10px;
+  width: 250px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.create-board button {
+  padding: 10px 15px;
+  border: none;
+  background: #4f6ef7;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* BOARDS GRID */
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+/* BOARD CARD */
+.board-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.board-card:hover {
+  transform: translateY(-4px);
+}
+.board-card h3 {
+  margin: 0;
+  font-size: 18px;
+}

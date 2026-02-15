@@ -1,19 +1,38 @@
 import Board from "../models/Board.js";
+import List from "../models/List.js";
 
+
+// CREATE BOARD
 // CREATE BOARD
 export const createBoard = async (req, res) => {
   try {
+    // 1️⃣ Create board
     const board = await Board.create({
       title: req.body.title,
       owner: req.user._id,
       members: [req.user._id],
     });
 
+    // 2️⃣ AUTO CREATE DEFAULT LISTS
+    const defaultLists = ["Todo", "Doing", "Done"];
+
+    await Promise.all(
+      defaultLists.map((title, index) =>
+        List.create({
+          title,
+          board: board._id,
+          order: index,
+        })
+      )
+    );
+
     res.status(201).json(board);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // GET ALL BOARDS (USER)
 export const getBoards = async (req, res) => {

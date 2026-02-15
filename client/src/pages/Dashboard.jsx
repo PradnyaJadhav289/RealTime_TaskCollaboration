@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import { logout } from "../features/auth/authSlice";
+import "./Dashboard.css";
 
 export default function Dashboard() {
   const { userInfo } = useSelector((state) => state.auth);
@@ -36,7 +37,7 @@ export default function Dashboard() {
   const createBoard = async (e) => {
     e.preventDefault();
 
-    if (!title) return;
+    if (!title.trim()) return;
 
     try {
       const res = await axios.post(
@@ -49,7 +50,7 @@ export default function Dashboard() {
         }
       );
 
-      setBoards([...boards, res.data]);
+      setBoards((prev) => [...prev, res.data]);
       setTitle("");
     } catch (error) {
       console.error(error);
@@ -59,49 +60,56 @@ export default function Dashboard() {
   // =========================
   // LOGOUT
   // =========================
-  const logoutHandler = () => {
+  const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
 
-  // =========================
-  // LOAD DATA
-  // =========================
   useEffect(() => {
     fetchBoards();
   }, []);
 
-   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Your Boards</h2>
+  return (
+    <div className="dashboard">
+
+      {/* HEADER */}
+      <div className="dashboard-header">
+        <h2>Task Collaboration Dashboard</h2>
+
+        <div className="user-box">
+          <span>Welcome, {userInfo?.name}</span>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      </div>
 
       {/* CREATE BOARD */}
-      <form onSubmit={createBoard}>
+      <form className="create-board" onSubmit={createBoard}>
         <input
-          placeholder="Board title"
+          placeholder="Enter board name..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <button type="submit">Create Board</button>
       </form>
 
-      <hr />
+      {/* BOARDS SECTION */}
+      <h3>Your Boards</h3>
 
-      {/* BOARD LIST */}
-      {boards.map((board) => (
-        <div
-          key={board._id}
-          onClick={() => navigate(`/board/${board._id}`)}
-          style={{
-            border: "1px solid #ccc",
-            padding: "10px",
-            marginTop: "10px",
-            cursor: "pointer",
-          }}
-        >
-          {board.title}
-        </div>
-      ))}
+      <div className="board-grid">
+        {boards.length === 0 ? (
+          <p>No boards yet. Create one!</p>
+        ) : (
+          boards.map((board) => (
+            <div
+              key={board._id}
+              className="board-card"
+              onClick={() => navigate(`/board/${board._id}`)}
+            >
+              <h4>{board.title}</h4>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

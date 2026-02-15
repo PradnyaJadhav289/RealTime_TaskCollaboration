@@ -1,26 +1,30 @@
-import { useDroppable } from "@dnd-kit/core";
+import AddTask from "../Task/AddTask";
 import TaskCard from "../Task/TaskCard";
+import ListHeader from "./ListHeader";
 
-export default function ListCard({ list, tasks }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: list._id,
-  });
-
+export default function ListCard({
+  list,
+  tasks = [],
+  boardId,
+  onTaskAdded,
+}) {
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        minWidth: "260px",
-        background: isOver ? "#e6f0ff" : "#f4f5f7",
-        padding: "12px",
-        borderRadius: "8px",
-      }}
-    >
-      <h4>{list.title}</h4>
+    <div className="list-card">
 
+      <ListHeader title={list.title} />
+
+      {/* TASKS */}
       {tasks.map((task) => (
         <TaskCard key={task._id} task={task} />
       ))}
+
+      {/* ADD TASK */}
+      <AddTask
+        listId={list._id}
+        boardId={boardId}
+        onTaskAdded={onTaskAdded}
+      />
+
     </div>
   );
 }

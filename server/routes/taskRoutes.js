@@ -4,6 +4,7 @@ import {
   getTasks,
   updateTask,
   deleteTask,
+  getBoardActivity,
 } from "../controllers/taskController.js";
 
 import protect from "../middleware/authMiddleware.js";
@@ -14,5 +15,7 @@ router.post("/", protect, createTask);
 router.get("/:boardId", protect, getTasks);
 router.put("/:id", protect, updateTask);
 router.delete("/:id", protect, deleteTask);
+router.get("/activity/:boardId", protect, getBoardActivity);
+
 
 export default router;

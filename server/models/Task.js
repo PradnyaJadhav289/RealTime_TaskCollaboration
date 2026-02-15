@@ -17,6 +17,12 @@ const taskSchema = new mongoose.Schema(
       ref: "List",
       required: true,
     },
+    createdBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true
+}
+,
 
     board: {
       type: mongoose.Schema.Types.ObjectId,

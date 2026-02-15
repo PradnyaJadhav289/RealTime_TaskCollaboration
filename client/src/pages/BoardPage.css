@@ -1,0 +1,13 @@
+.board-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6fa;
+}
+
+/* MAIN SPLIT LAYOUT */
+.board-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}

@@ -1,0 +1,7 @@
+.activity-feed {
+  width: 280px;
+  background: white;
+  border-left: 1px solid #ddd;
+  padding: 15px;
+  overflow-y: auto;
+}
