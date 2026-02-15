@@ -71,22 +71,14 @@ export default function Dashboard() {
     fetchBoards();
   }, []);
 
-  return (
+   return (
     <div style={{ padding: "20px" }}>
-      <h2>Dashboard</h2>
-
-      {/* USER INFO */}
-      <p>Welcome, {userInfo?.name}</p>
-
-      <button onClick={logoutHandler}>Logout</button>
-
-      <hr />
+      <h2>Your Boards</h2>
 
       {/* CREATE BOARD */}
       <form onSubmit={createBoard}>
         <input
-          type="text"
-          placeholder="Enter board name"
+          placeholder="Board title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -96,26 +88,20 @@ export default function Dashboard() {
       <hr />
 
       {/* BOARD LIST */}
-      <h3>Your Boards</h3>
-
-      {boards.length === 0 ? (
-        <p>No boards found</p>
-      ) : (
-        boards.map((board) => (
-          <div
-            key={board._id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              marginTop: "10px",
-              cursor: "pointer",
-            }}
-            onClick={() => navigate(`/board/${board._id}`)}
-          >
-            {board.title}
-          </div>
-        ))
-      )}
+      {boards.map((board) => (
+        <div
+          key={board._id}
+          onClick={() => navigate(`/board/${board._id}`)}
+          style={{
+            border: "1px solid #ccc",
+            padding: "10px",
+            marginTop: "10px",
+            cursor: "pointer",
+          }}
+        >
+          {board.title}
+        </div>
+      ))}
     </div>
   );
 }

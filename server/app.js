@@ -8,6 +8,9 @@ import connectDB from "./config/db.js";
 // Routes
 // ==========================
 import authRoutes from "./routes/authRoutes.js";
+import boardRoutes from "./routes/boardRoutes.js";
+import listRoutes from "./routes/listRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
 
 
 dotenv.config();
@@ -36,7 +39,9 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/boards", boardRoutes);
+app.use("/api/lists", listRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // ==========================
 // HEALTH CHECK
