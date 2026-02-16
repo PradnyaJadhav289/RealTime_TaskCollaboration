@@ -1,9 +1,14 @@
-import { useState } from "react";
-import axios from "../../api/axios";
-import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { updateTaskAPI } from "../../api/taskApi";
+import { updateTask } from "../../features/task/taskSlice";
+import "./TaskModal.css";
 
-export default function TaskModal({ task, onClose, onUpdate }) {
+export default function TaskModal({ task, onClose, onDelete }) {
+  const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
+  const { lists } = useSelector((state) => state.board);
+  const { currentBoard } = useSelector((state) => state.board);
 
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
@@ -11,74 +16,184 @@ export default function TaskModal({ task, onClose, onUpdate }) {
   const [dueDate, setDueDate] = useState(
     task.dueDate ? task.dueDate.split("T")[0] : ""
   );
+  const [selectedList, setSelectedList] = useState(task.list);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  // =========================
-  // SAVE TASK
-  // =========================
   const handleSave = async () => {
+    if (!title.trim()) {
+      setError("Title is required");
+      return;
+    }
+
     try {
-      const res = await axios.put(
-        `/tasks/${task._id}`,
+      setSaving(true);
+      setError("");
+
+      const response = await updateTaskAPI(
+        task._id,
         {
           title,
           description,
           priority,
-          dueDate,
+          dueDate: dueDate || null,
+          list: selectedList,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${userInfo.token}`,
-          },
-        }
+        userInfo.token
       );
 
-      onUpdate(res.data);
+      const updatedTaskData = response.data || response;
+      dispatch(updateTask(updatedTaskData));
       onClose();
     } catch (error) {
-      console.error(error);
+      console.error("Update task error:", error);
+      setError(error.response?.data?.message || "Failed to update task");
+      setSaving(false);
     }
   };
 
+  const getPriorityColor = (p) => {
+    switch (p) {
+      case "high":
+        return "#eb5a46";
+      case "medium":
+        return "#f2d600";
+      case "low":
+        return "#61bd4f";
+      default:
+        return "#c4c9cc";
+    }
+  };
+
+  const isOverdue = dueDate && new Date(dueDate) < new Date();
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-box">
-
-        <h3>Edit Task</h3>
-
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Task title"
-        />
-
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-        />
-
-        <label>Priority</label>
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-
-        <label>Due Date</label>
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
-
-        <div style={{ marginTop: "15px" }}>
-          <button onClick={handleSave}>Save</button>
-          <button onClick={onClose}>Close</button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="modal-header">
+          <h3>📋 Edit Task</h3>
+          <button className="close-btn" onClick={onClose}>
+            ✕
+          </button>
         </div>
 
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
+        {/* Title */}
+        <div className="form-group">
+          <label>Title *</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Task title"
+          />
+        </div>
+
+        {/* Description */}
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add a more detailed description..."
+            rows="4"
+          />
+        </div>
+
+        {/* Priority and Due Date Row */}
+        <div className="form-row">
+          <div className="form-group">
+            <label>Priority</label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              style={{
+                borderLeft: `4px solid ${getPriorityColor(priority)}`,
+              }}
+            >
+              <option value="low">🟢 Low</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Due Date {isOverdue && <span className="overdue-badge">Overdue!</span>}</label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              style={{
+                borderColor: isOverdue ? "#eb5a46" : "#dfe1e6",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Move to List */}
+        <div className="form-group">
+          <label>List</label>
+          <select
+            value={selectedList}
+            onChange={(e) => setSelectedList(e.target.value)}
+          >
+            {lists.map((list) => (
+              <option key={list._id} value={list._id}>
+                {list.title}
+                {list._id === task.list && " (current)"}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Members Section */}
+        {currentBoard?.members && (
+          <div className="form-group">
+            <label>Board Members</label>
+            <div className="members-list">
+              {currentBoard.members.map((member) => (
+                <div key={member._id} className="member-item">
+                  <div className="member-avatar">
+                    {member.name?.charAt(0).toUpperCase() || "?"}
+                  </div>
+                  <span>{member.name || member.email}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Task Info */}
+        <div className="task-info">
+          <div className="info-item">
+            <span className="info-label">Created:</span>
+            <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">By:</span>
+            <span>{task.createdBy?.name || "Unknown"}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="modal-actions">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-save"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+
+          <button onClick={onDelete} className="btn-delete">
+            🗑️ Delete
+          </button>
+        </div>
       </div>
     </div>
   );

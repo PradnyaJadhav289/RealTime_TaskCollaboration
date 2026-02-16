@@ -1,45 +1,70 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { registerAPI } from "../api/authApi";
-import { useNavigate } from "react-router-dom";
-import './Signup.css';
+import "./Auth.css";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setError("");
 
-    await registerAPI({ name, email, password });
-
-    navigate("/login");
+    try {
+      setLoading(true);
+      await registerAPI({ name, email, password });
+      navigate("/login");
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={submitHandler}>
-      <h2>Signup</h2>
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={submitHandler}>
+        <h2>Create Account</h2>
+        <p className="auth-subtitle">Start collaborating today</p>
 
-      <input
-        placeholder="Name"
-        onChange={(e) => setName(e.target.value)}
-      />
+        {error && <div className="error-message">{error}</div>}
 
-      <input
-        type="email"
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <input
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-      <button type="submit">Signup</button>
-    </form>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating account..." : "Sign up"}
+        </button>
+
+        <p className="auth-switch">
+          Already have an account? <Link to="/login">Log in</Link>
+        </p>
+      </form>
+    </div>
   );
 }
