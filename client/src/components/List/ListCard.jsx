@@ -11,7 +11,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-function SortableTask({ task }) {
+function SortableTask({ task, canDrag }) {
+  if (!canDrag) {
+    return <TaskCard task={task} />;
+  }
+
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task._id });
 
@@ -30,6 +34,7 @@ function SortableTask({ task }) {
 export default function ListCard({ list, tasks, boardId }) {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
+  const { currentBoard } = useSelector((state) => state.board);
 
   const handleDeleteList = async () => {
     if (!window.confirm("Delete this list?")) return;
@@ -72,9 +77,29 @@ export default function ListCard({ list, tasks, boardId }) {
           items={tasks.map((task) => task._id)}
           strategy={verticalListSortingStrategy}
         >
-          {tasks.map((task) => (
-            <SortableTask key={task._id} task={task} />
-          ))}
+          {tasks.map((task) => {
+            const isOwner =
+              currentBoard?.owner &&
+              userInfo?._id &&
+              currentBoard.owner === userInfo._id;
+
+            const isAssigned =
+              Array.isArray(task.assignedUsers) &&
+              userInfo?._id &&
+              task.assignedUsers.some((u) =>
+                typeof u === "string" ? u === userInfo._id : u._id === userInfo._id
+              );
+
+            const canDrag = isOwner || isAssigned;
+
+            return (
+              <SortableTask
+                key={task._id}
+                task={task}
+                canDrag={canDrag}
+              />
+            );
+          })}
         </SortableContext>
       </div>
 

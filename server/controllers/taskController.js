@@ -52,9 +52,20 @@ export const getTasks = async (req, res) => {
   try {
     const boardId = req.params.boardId;
 
-    const tasks = await Task.find({
-      board: boardId,
-    })
+    const board = await Board.findById(boardId);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found" });
+    }
+
+    const userId = req.user._id.toString();
+    const isOwner = board.owner.toString() === userId;
+
+    const query = isOwner
+      ? { board: boardId }
+      : { board: boardId, assignedUsers: userId };
+
+    const tasks = await Task.find(query)
       .sort("order")
       .populate("createdBy", "name email")
       .populate("assignedUsers", "name email");
