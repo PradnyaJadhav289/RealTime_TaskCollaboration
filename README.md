@@ -1,163 +1,85 @@
-# 📌 Real-Time Task Collaboration Platform
+📄 FULL STACK ENGINEER INTERVIEW ASSIGNMENT
+Real-Time Task Collaboration Platform
+🔗 Live Demo
+#  🌐 Frontend (Vercel)
+ https://your-frontend.vercel.app
 
-A **Trello / Notion-like Real-Time Task Collaboration Platform** built using the **MERN Stack**, Redux Toolkit, and Socket.IO.
+#  ⚙ Backend (Render)
+https://your-backend.onrender.com/api
+# 💻 Git Repository
+https://github.com/yourusername/RealTime_TaskCollaboration
 
-This application allows users to:
+# 🧠 Problem Statement
 
-* Create boards, lists, and tasks
-* Collaborate in real-time
-* Assign members
-* Drag & drop tasks
-* Track activity logs
-* Secure authentication using JWT
+Build a Real-Time Task Collaboration Platform similar to a lightweight Trello/Notion hybrid.
 
----
+# Users can:
+Create boards
+Manage lists & tasks
+Assign members
+Drag & drop tasks
+See real-time updates
 
-# 🚀 Tech Stack
+# 🏗️ Tech Stack
 
-## Frontend
+# Frontend 
+React (SPA)
+Redux Toolkit (State Management)
+Axios (API Layer)
+DnD Kit (Drag & Drop)
+Socket.IO Client
 
-* React.js
-* Redux Toolkit
-* React Router
-* Axios
-* Socket.IO Client
-* Drag & Drop (dnd-kit / react-beautiful-dnd)
+# Backend
+Node.js + Express
+MongoDB + Mongoose
+JWT Authentication
+Socket.IO (Realtime)
+REST APIs
 
-## Backend
+# Deployment
+1. Layer Platform
+2. Frontend	Vercel
+3. Backend	Render
+4. Database	MongoDB Atlas
 
-* Node.js
-* Express.js
-* MongoDB + Mongoose
-* JWT Authentication
-* Socket.IO
+# ⚙ Functional Requirements Implemented
 
----
+1. User Authentication (Signup/Login)
+2. Create Boards with Lists
+3. Create / Update / Delete Tasks
+4. Drag & Drop Tasks
+5. Assign Users to Tasks
+6. Real-time Sync (Socket.IO)
+7. Activity Logging
+8. Search + Pagination
+9. Protected Routes
 
-# 📂 Project Structure
-
-```
-project-root/
-│
-├── client/        # React Frontend
-└── server/        # Node.js Backend
-```
-
----
-
-# 🌐 CLIENT — Detailed Folder Structure
-
-```
+# 🧱 Frontend Architecture
 client/
 │
-├── public/
-│   ├── index.html
-│   └── assets/
-│
 ├── src/
-│
-│   ├── api/
-│   │   ├── axios.js
-│   │   ├── authApi.js
-│   │   ├── boardApi.js
-│   │   └── taskApi.js
-│   │
-│   ├── app/
-│   │   └── store.js
-│   │
-│   ├── features/
-│   │   ├── auth/
-│   │   │   ├── authSlice.js
-│   │   │   ├── authThunk.js
-│   │   │   └── authSelectors.js
-│   │   │
-│   │   ├── board/
-│   │   │   ├── boardSlice.js
-│   │   │   ├── boardThunk.js
-│   │   │   └── boardSelectors.js
-│   │   │
-│   │   ├── task/
-│   │   │   ├── taskSlice.js
-│   │   │   ├── taskThunk.js
-│   │   │   └── taskSelectors.js
-│   │   │
-│   │   └── socket/
-│   │       └── socketSlice.js
-│   │
+│   ├── api/          → Axios services
+│   ├── app/          → Redux store
+│   ├── features/     → Redux slices
 │   ├── components/
-│   │   ├── Board/
-│   │   │   ├── BoardContainer.jsx
-│   │   │   ├── BoardHeader.jsx
-│   │   │   └── BoardMembers.jsx
-│   │   │
-│   │   ├── List/
-│   │   │   ├── ListCard.jsx
-│   │   │   ├── ListHeader.jsx
-│   │   │   └── AddList.jsx
-│   │   │
-│   │   ├── Task/
-│   │   │   ├── TaskCard.jsx
-│   │   │   ├── TaskModal.jsx
-│   │   │   ├── TaskDetails.jsx
-│   │   │   └── AddTask.jsx
-│   │   │
-│   │   └── Common/
-│   │       ├── Loader.jsx
-│   │       ├── Navbar.jsx
-│   │       ├── Modal.jsx
-│   │       └── SearchBar.jsx
-│   │
+│   │     ├── Board
+│   │     ├── List
+│   │     ├── Task
+│   │     └── Common
 │   ├── pages/
-│   │   ├── Login.jsx
-│   │   ├── Signup.jsx
-│   │   ├── Dashboard.jsx
-│   │   └── BoardPage.jsx
-│   │
 │   ├── hooks/
-│   │   ├── useAuth.js
-│   │   ├── useBoard.js
-│   │   ├── useTask.js
-│   │   └── useSocket.js
-│   │
-│   ├── routes/
-│   │   ├── AppRoutes.jsx
-│   │   └── ProtectedRoute.jsx
-│   │
-│   ├── utils/
-│   │   ├── constants.js
-│   │   ├── helpers.js
-│   │   └── dragDropHelpers.js
-│   │
-│   ├── styles/
-│   │   └── global.css
-│   │
-│   ├── App.jsx
-│   └── main.jsx
-│
-└── package.json
-```
+│   └── routes/
 
----
+# State Management
 
-## 📌 Client Folder Purpose
+Redux Toolkit used for:
 
-| Folder     | Purpose                    |
-| ---------- | -------------------------- |
-| api        | Axios API calls            |
-| app        | Redux store setup          |
-| features   | Redux Toolkit slices       |
-| components | Reusable UI components     |
-| pages      | Main screens               |
-| hooks      | Custom reusable hooks      |
-| routes     | Routing & protected routes |
-| utils      | Helper utilities           |
-| styles     | Global styling             |
+auth
+boards
+tasks
+socket state
 
----
-
-# ⚙️ SERVER — Detailed Folder Structure
-
-```
+# 🧩 Backend Architecture
 server/
 │
 ├── config/
@@ -172,167 +94,167 @@ server/
 │   └── ActivityLog.js
 │
 ├── controllers/
-│   ├── authController.js
-│   ├── boardController.js
-│   ├── listController.js
-│   └── taskController.js
-│
 ├── routes/
-│   ├── authRoutes.js
-│   ├── boardRoutes.js
-│   └── taskRoutes.js
-│
 ├── middleware/
-│   ├── authMiddleware.js
-│   ├── errorHandler.js
-│   └── activityLogger.js
-│
 ├── services/
-│   ├── socketService.js
-│   └── taskService.js
-│
-├── utils/
-│   ├── generateToken.js
-│   ├── asyncHandler.js
-│   ├── constants.js
-│   ├── validators.js
-│   ├── pagination.js
-│   ├── socketEvents.js
-│   └── logger.js
-│
-├── tests/
-│
-├── app.js
-└── server.js
-```
+└── utils/
 
----
+# 🗄️ Database Schema Design
+1. User
+name
+email
+password
 
-## 📌 Server Folder Purpose
+2. Board
+title
+owner
+members[]
 
-| Folder      | Purpose                   |
-| ----------- | ------------------------- |
-| config      | DB & Socket configuration |
-| models      | MongoDB schemas           |
-| controllers | Request handling logic    |
-| routes      | API endpoints             |
-| middleware  | Auth & error handling     |
-| services    | Business logic layer      |
-| utils       | Helper functions          |
-| tests       | Testing files             |
+3. List
+title
+board
+order
 
----
+4. Task
+title
+description
+board
+list
+assignedUsers[]
+priority
+dueDate
+createdBy
 
-# 🔄 Application Flow
+5. ActivityLog
+board
+user
+action
+task
+meta
 
-```
-Frontend (React + Redux)
-        ↓
-Axios API Calls
-        ↓
-Express Routes
-        ↓
-Controllers
-        ↓
-Services
-        ↓
-MongoDB Models
-        ↓
-Socket.IO Events (Realtime)
-        ↓
-All Clients Updated
-```
+# 🔌 API Contract Design
+1. Auth
+POST /api/auth/register
+POST /api/auth/login
 
----
+2. Boards
+GET    /api/boards
+POST   /api/boards
+GET    /api/boards/:id
+DELETE /api/boards/:id
 
-# ⚡ Installation Guide
+3. Lists
+GET    /api/lists/:boardId
+POST   /api/lists
 
-## 1️⃣ Clone Repository
+4. Tasks
+GET    /api/tasks/:boardId
+POST   /api/tasks
+PUT    /api/tasks/:id
+DELETE /api/tasks/:id
 
-```
-git clone <repo-url>
-cd project-root
-```
+5. Activity
+GET /api/activity/:boardId
 
----
+# ⚡ Real-Time Sync Strategy
 
-## 2️⃣ Backend Setup
+Implemented using Socket.IO.
 
-```
-cd server
-npm install
-```
+Events
+join_board
+task_created
+task_updated
+task_moved
+task_deleted
+activity_created
 
-Create `.env` file:
+# Flow
+Client action
+     ↓
+API Update
+     ↓
+DB Update
+     ↓
+Socket Emit
+     ↓
+All clients update UI
 
-```
-PORT=5000
-MONGO_URI=your_mongodb_url
-JWT_SECRET=your_secret_key
-CLIENT_URL=http://localhost:5173
-```
+# UI Architecture
 
-Run backend:
+Board Page Layout:
 
-```
-npm run dev
-```
+BoardHeader
+    ↓
+BoardContainer
+       ↓
+Lists (columns)
+       ↓
+Tasks
 
----
+Activity Sidebar (Realtime)
 
-## 3️⃣ Frontend Setup
+Search & Pagination
+GET /tasks?page=1&limit=10&search=design
 
-```
-cd client
-npm install
-npm run dev
-```
 
----
+# Supports:
 
-# 🔐 Environment Variables
+keyword search
+status filter
+priority filter
 
-```
-PORT=
-MONGO_URI=
-JWT_SECRET=
-CLIENT_URL=
-```
+# 🧠 Scalability Considerations
 
----
+Pagination to reduce DB load
+Socket rooms per board
+Indexed Mongo fields
+Optimistic UI updates
+Modular service layer architecture
 
-# 🔥 Key Features
+# 🔐 Security
 
-* JWT Authentication
-* Board & Task Management
-* Drag & Drop Task Movement
-* Real-Time Collaboration (Socket.IO)
-* Activity Tracking
-* Redux Toolkit State Management
-* Scalable Modular Architecture
+JWT authentication
+Protected API routes
+Password hashing (bcrypt)
+Role-based checks for boards
 
----
+# 🧪 Test Coverage
 
-# 🧠 Architecture Highlights
+* Basic testing included:
+Authentication flow
+CRUD APIs
+API integration testing
 
-* Feature-based Redux structure
-* Service layer backend design
-* Clean separation of concerns
-* Realtime synchronization
-* Industry-standard folder organization
+# Deployment Strategy
+Backend (Render)
+Root directory → server
 
----
+* Start command → node server.js
 
-# 🧪 Future Improvements
+* Environment variables configured
 
-* Role-based permissions
-* Notifications
-* File uploads
-* Dark mode
-* Analytics dashboard
+* Frontend (Vercel)
 
----
+# Production API URL via ENV variable:
 
-# 👨‍💻 Author
+VITE_API_URL=https://backend.onrender.com/api
 
-Full Stack MERN Project — Real-Time Task Collaboration Platform.
+#  Assumptions & Trade-offs
+
+Minimal UI styling focused on functionality.
+Basic role system (owner/member).
+Socket events optimized for board-level updates.
+
+#  Demo Credentials
+Email: sanika123@gmail.com
+Password: 123456
+
+# Key Highlights
+
+1. Real-time collaboration system
+2. Drag & drop Kanban board
+3. Activity logging
+4. Socket-based synchronization
+
+Full production deployment
+
