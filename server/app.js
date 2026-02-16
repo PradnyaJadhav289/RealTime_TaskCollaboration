@@ -20,7 +20,7 @@ app.use(
     origin: [
       process.env.CLIENT_URL,
       "http://localhost:5173",
-      "https://your-frontend.vercel.app",
+      
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
