@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCorners,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core";
 import { getTasksAPI, updateTaskAPI } from "../../api/taskApi";
 import { setTasksSuccess, moveTask } from "../../features/task/taskSlice";
 import { getListsAPI } from "../../api/boardApi";
@@ -9,6 +16,8 @@ import { setLists } from "../../features/board/boardSlice";
 import useSocket from "../../hooks/useSocket";
 import ListCard from "../List/ListCard";
 import AddList from "../List/AddList";
+import SearchAndFilter from "./SearchAndFilter";
+import TaskCard from "../Task/TaskCard";
 import "./BoardContainer.css";
 
 export default function BoardContainer() {
@@ -19,71 +28,128 @@ export default function BoardContainer() {
   const { tasks } = useSelector((state) => state.task);
 
   const [loading, setLoading] = useState(true);
+  const [activeId, setActiveId] = useState(null);
+  
+  // Separate state for input and applied filters
+  const [filters, setFilters] = useState({
+    search: "",
+    priority: "all",
+    status: "all",
+    assignedTo: "all",
+    listId: "all",
+  });
+  
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    priority: "all",
+    status: "all",
+    assignedTo: "all",
+    listId: "all",
+  });
 
-  // Initialize socket connection for real-time updates
   useSocket(id, userInfo?.token);
 
-  // Fetch lists and tasks
+  // Configure sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+
+  // Fetch data only when appliedFilters change
   useEffect(() => {
-    const fetchData = async () => {
-      if (!userInfo) return;
-
-      try {
-        setLoading(true);
-
-        // Fetch lists
-        const listsData = await getListsAPI(id, userInfo.token);
-        dispatch(setLists(listsData.data || listsData));
-
-        // Fetch tasks
-        const tasksData = await getTasksAPI(id, userInfo.token);
-        dispatch(setTasksSuccess(tasksData.data || tasksData));
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [id, userInfo, dispatch]);
+  }, [id, userInfo, appliedFilters]);
 
-  // Group tasks by list
+  const fetchData = async () => {
+    if (!userInfo) return;
+
+    try {
+      setLoading(true);
+
+      const listsData = await getListsAPI(id, userInfo.token);
+      dispatch(setLists(listsData.data || listsData));
+
+      const queryParams = new URLSearchParams();
+      Object.entries(appliedFilters).forEach(([key, value]) => {
+        if (value && value !== "all" && value !== "") {
+          queryParams.append(key, value);
+        }
+      });
+
+      const tasksData = await getTasksAPI(id, userInfo.token, queryParams.toString());
+      const tasksList = tasksData.tasks || tasksData.data || tasksData;
+      dispatch(setTasksSuccess(Array.isArray(tasksList) ? tasksList : []));
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setLoading(false);
+    }
+  };
+
+  // Apply filters function - triggered by Enter or button click
+  const applyFilters = () => {
+    setAppliedFilters({ ...filters });
+  };
+
   const getTasksByList = (listId) => {
-    return tasks.filter((task) => task.list === listId);
+    return tasks
+      .filter((task) => {
+        const taskListId = task.list?._id || task.list;
+        return taskListId === listId;
+      })
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  };
+
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
   };
 
   const handleDragEnd = async (event) => {
     const { active, over } = event;
+    setActiveId(null);
 
-    if (!over || !active) return;
-    if (active.id === over.id) return;
+    if (!over || !active || active.id === over.id) return;
 
     const activeTask = tasks.find((t) => t._id === active.id);
+    
+    let targetListId;
     const overTask = tasks.find((t) => t._id === over.id);
+    
+    if (overTask) {
+      targetListId = overTask.list?._id || overTask.list;
+    } else {
+      targetListId = over.id; // Dropping directly on list
+    }
 
-    if (!activeTask || !overTask) return;
+    if (!activeTask || !targetListId) return;
 
-    const newListId = overTask.list;
-
-    // Optimistic UI update: move in front of the "over" task
+    // Optimistic update
     dispatch(
       moveTask({
         taskId: activeTask._id,
-        newListId,
-        overTaskId: overTask._id,
+        newListId: targetListId,
+        overTaskId: overTask?._id || null,
       })
     );
 
-    // Persist change to server (only list is stored on backend right now)
+    // Persist to server
     try {
-      if (!userInfo?.token) return;
-      await updateTaskAPI(activeTask._id, { list: newListId }, userInfo.token);
+      await updateTaskAPI(activeTask._id, { list: targetListId }, userInfo.token);
     } catch (error) {
       console.error("Move task error:", error);
+      fetchData();
     }
   };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
+  const activeTask = activeId ? tasks.find((t) => t._id === activeId) : null;
 
   if (loading) {
     return (
@@ -94,22 +160,44 @@ export default function BoardContainer() {
   }
 
   return (
-    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="board-container">
-        {lists.map((list) => (
-          <ListCard
-            key={list._id}
-            list={list}
-            tasks={getTasksByList(list._id)}
-            boardId={id}
-          />
-        ))}
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <SearchAndFilter
+        filters={filters}
+        setFilters={setFilters}
+        applyFilters={applyFilters}
+        lists={lists}
+      />
 
-        {/* ADD NEW LIST */}
-        <div className="add-list-container">
-          <AddList boardId={id} />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <div className="board-container">
+          {lists.map((list) => (
+            <ListCard
+              key={list._id}
+              list={list}
+              tasks={getTasksByList(list._id)}
+              boardId={id}
+            />
+          ))}
+
+          <div className="add-list-container">
+            <AddList boardId={id} />
+          </div>
         </div>
-      </div>
-    </DndContext>
+
+        <DragOverlay>
+          {activeTask ? (
+            <div style={{ opacity: 0.9, transform: "rotate(3deg)", cursor: "grabbing" }}>
+              <TaskCard task={activeTask} isDragging={true} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }

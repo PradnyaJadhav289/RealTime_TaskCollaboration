@@ -1,15 +1,16 @@
 import { useDispatch, useSelector } from "react-redux";
-import { deleteListAPI } from "../../api/boardApi";
-import { deleteList } from "../../features/board/boardSlice";
-import ListHeader from "./ListHeader";
-import TaskCard from "../Task/TaskCard";
-import AddTask from "../Task/AddTask";
+import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { deleteListAPI } from "../../api/boardApi";
+import { deleteList } from "../../features/board/boardSlice";
+import ListHeader from "./ListHeader";
+import TaskCard from "../Task/TaskCard";
+import AddTask from "../Task/AddTask";
 
 function SortableTask({ task, canDrag }) {
   if (!canDrag) {
@@ -28,6 +29,7 @@ function SortableTask({ task, canDrag }) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 999 : "auto",
   };
 
@@ -43,6 +45,11 @@ export default function ListCard({ list, tasks, boardId }) {
   const { userInfo } = useSelector((state) => state.auth);
   const { currentBoard } = useSelector((state) => state.board);
 
+  // Make the list droppable
+  const { setNodeRef, isOver } = useDroppable({
+    id: list._id,
+  });
+
   const handleDeleteList = async () => {
     if (!window.confirm("Delete this list?")) return;
 
@@ -56,15 +63,17 @@ export default function ListCard({ list, tasks, boardId }) {
 
   return (
     <div
+      ref={setNodeRef}
       style={{
         minWidth: "280px",
         maxWidth: "280px",
-        background: "#ebecf0",
+        background: isOver ? "#e3f2fd" : "#ebecf0",
         borderRadius: "10px",
         padding: "12px",
         display: "flex",
         flexDirection: "column",
         maxHeight: "100%",
+        transition: "background-color 0.2s",
       }}
     >
       <ListHeader
@@ -78,13 +87,14 @@ export default function ListCard({ list, tasks, boardId }) {
           flex: 1,
           overflowY: "auto",
           marginBottom: "8px",
+          minHeight: "100px", // Ensure there's space to drop
         }}
       >
         <SortableContext
           items={tasks.map((task) => task._id)}
           strategy={verticalListSortingStrategy}
         >
-                    {tasks.map((task) => {
+          {tasks.map((task) => {
             const isOwner =
               currentBoard?.owner &&
               userInfo?._id &&
