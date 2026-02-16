@@ -62,13 +62,20 @@ const taskSlice = createSlice({
       state.selectedTask = null;
     },
     
-    // MOVE TASK (Drag & Drop)
+    // MOVE TASK (Drag & Drop) with reordering
     moveTask: (state, action) => {
-      const { taskId, newListId } = action.payload;
-      const task = state.tasks.find((t) => t._id === taskId);
-      if (task) {
-        task.list = newListId;
-      }
+      const { taskId, newListId, overTaskId } = action.payload;
+
+      const fromIndex = state.tasks.findIndex((t) => t._id === taskId);
+      const toIndex = state.tasks.findIndex((t) => t._id === overTaskId);
+
+      if (fromIndex === -1 || toIndex === -1) return;
+
+      const [movedTask] = state.tasks.splice(fromIndex, 1);
+      movedTask.list = newListId;
+
+      const insertIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+      state.tasks.splice(insertIndex, 0, movedTask);
     },
     
     clearTasks: (state) => {

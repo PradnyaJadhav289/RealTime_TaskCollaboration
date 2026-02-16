@@ -16,12 +16,19 @@ function SortableTask({ task, canDrag }) {
     return <TaskCard task={task} />;
   }
 
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: task._id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task._id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    zIndex: isDragging ? 999 : "auto",
   };
 
   return (
@@ -77,7 +84,7 @@ export default function ListCard({ list, tasks, boardId }) {
           items={tasks.map((task) => task._id)}
           strategy={verticalListSortingStrategy}
         >
-          {tasks.map((task) => {
+                    {tasks.map((task) => {
             const isOwner =
               currentBoard?.owner &&
               userInfo?._id &&

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { getTasksAPI } from "../../api/taskApi";
-import { setTasksSuccess } from "../../features/task/taskSlice";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { getTasksAPI, updateTaskAPI } from "../../api/taskApi";
+import { setTasksSuccess, moveTask } from "../../features/task/taskSlice";
 import { getListsAPI } from "../../api/boardApi";
 import { setLists } from "../../features/board/boardSlice";
 import useSocket from "../../hooks/useSocket";
@@ -53,6 +54,37 @@ export default function BoardContainer() {
     return tasks.filter((task) => task.list === listId);
   };
 
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+
+    if (!over || !active) return;
+    if (active.id === over.id) return;
+
+    const activeTask = tasks.find((t) => t._id === active.id);
+    const overTask = tasks.find((t) => t._id === over.id);
+
+    if (!activeTask || !overTask) return;
+
+    const newListId = overTask.list;
+
+    // Optimistic UI update: move in front of the "over" task
+    dispatch(
+      moveTask({
+        taskId: activeTask._id,
+        newListId,
+        overTaskId: overTask._id,
+      })
+    );
+
+    // Persist change to server (only list is stored on backend right now)
+    try {
+      if (!userInfo?.token) return;
+      await updateTaskAPI(activeTask._id, { list: newListId }, userInfo.token);
+    } catch (error) {
+      console.error("Move task error:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="board-container">
@@ -62,20 +94,22 @@ export default function BoardContainer() {
   }
 
   return (
-    <div className="board-container">
-      {lists.map((list) => (
-        <ListCard
-          key={list._id}
-          list={list}
-          tasks={getTasksByList(list._id)}
-          boardId={id}
-        />
-      ))}
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <div className="board-container">
+        {lists.map((list) => (
+          <ListCard
+            key={list._id}
+            list={list}
+            tasks={getTasksByList(list._id)}
+            boardId={id}
+          />
+        ))}
 
-      {/* ADD NEW LIST */}
-      <div className="add-list-container">
-        <AddList boardId={id} />
+        {/* ADD NEW LIST */}
+        <div className="add-list-container">
+          <AddList boardId={id} />
+        </div>
       </div>
-    </div>
+    </DndContext>
   );
 }
