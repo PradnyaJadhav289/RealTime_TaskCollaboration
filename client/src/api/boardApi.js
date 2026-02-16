@@ -20,6 +20,20 @@ export const getBoardByIdAPI = async (boardId, token) => {
   return res.data;
 };
 
+// INVITE MEMBER TO BOARD
+export const inviteMemberAPI = async (boardId, email, token) => {
+  const res = await axios.post(
+    `/boards/${boardId}/invite`,
+    { email },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
 // CREATE BOARD
 export const createBoardAPI = async (data, token) => {
   const res = await axios.post("/boards", data, {

@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getTasksAPI } from "../../api/taskApi";
 import { setTasksSuccess } from "../../features/task/taskSlice";
 import { getListsAPI } from "../../api/boardApi";
-import { setLists, addList } from "../../features/board/boardSlice";
+import { setLists } from "../../features/board/boardSlice";
 import useSocket from "../../hooks/useSocket";
 import ListCard from "../List/ListCard";
 import AddList from "../List/AddList";
@@ -53,11 +53,6 @@ export default function BoardContainer() {
     return tasks.filter((task) => task.list === listId);
   };
 
-  // Handle list added
-  const handleListAdded = (newList) => {
-    dispatch(addList(newList));
-  };
-
   if (loading) {
     return (
       <div className="board-container">
@@ -79,7 +74,7 @@ export default function BoardContainer() {
 
       {/* ADD NEW LIST */}
       <div className="add-list-container">
-        <AddList boardId={id} onListAdded={handleListAdded} />
+        <AddList boardId={id} />
       </div>
     </div>
   );

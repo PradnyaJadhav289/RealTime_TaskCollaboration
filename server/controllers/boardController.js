@@ -50,7 +50,10 @@ export const getBoards = async (req, res) => {
 // GET SINGLE BOARD
 export const getBoardById = async (req, res) => {
   try {
-    const board = await Board.findById(req.params.id);
+    const board = await Board.findById(req.params.id).populate(
+      "members",
+      "name email"
+    );
 
     res.json(board);
   } catch (error) {
@@ -92,6 +95,49 @@ export const updateBoard = async (req, res) => {
     const updatedBoard = await board.save();
 
     res.json(updatedBoard);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// INVITE MEMBER BY EMAIL
+export const inviteMember = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const board = await Board.findById(req.params.id);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found" });
+    }
+
+    const user = await (await import("../models/User.js")).default.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const alreadyMember = board.members.some(
+      (m) => m.toString() === user._id.toString()
+    );
+
+    if (!alreadyMember) {
+      board.members.push(user._id);
+      await board.save();
+    }
+
+    const populatedBoard = await Board.findById(board._id).populate(
+      "members",
+      "name email"
+    );
+
+    res.json(populatedBoard);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -5,6 +5,7 @@ import {
   getBoardById,
   deleteBoard,
   updateBoard,
+  inviteMember,
 } from "../controllers/boardController.js";
 
 import protect from "../middleware/authMiddleware.js";
@@ -17,7 +18,7 @@ router.post("/", protect, createBoard);
 router.get("/", protect, getBoards);
 router.get("/:id", protect, getBoardById);
 router.put("/:id", protect, isBoardMember, updateBoard);
-router.delete("/:id", protect, deleteBoard);
+router.post("/:id/invite", protect, isBoardOwner, inviteMember);
 router.delete("/:id", protect, isBoardOwner, deleteBoard);
 
 export default router;

@@ -19,8 +19,20 @@ export default function TaskModal({ task, onClose, onDelete }) {
   const [selectedList, setSelectedList] = useState(task.list);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [assignedUserIds, setAssignedUserIds] = useState(
+    task.assignedUsers || []
+  );
+  const isOwner =
+    currentBoard?.owner &&
+    userInfo?._id &&
+    currentBoard.owner === userInfo._id;
 
   const handleSave = async () => {
+    if (!isOwner) {
+      setError("Only the board owner can edit this task.");
+      return;
+    }
+
     if (!title.trim()) {
       setError("Title is required");
       return;
@@ -38,6 +50,7 @@ export default function TaskModal({ task, onClose, onDelete }) {
           priority,
           dueDate: dueDate || null,
           list: selectedList,
+          assignedUsers: assignedUserIds,
         },
         userInfo.token
       );
@@ -88,6 +101,7 @@ export default function TaskModal({ task, onClose, onDelete }) {
         <div className="form-group">
           <label>Title *</label>
           <input
+            disabled={!isOwner}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Task title"
@@ -98,6 +112,7 @@ export default function TaskModal({ task, onClose, onDelete }) {
         <div className="form-group">
           <label>Description</label>
           <textarea
+            disabled={!isOwner}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add a more detailed description..."
@@ -110,6 +125,7 @@ export default function TaskModal({ task, onClose, onDelete }) {
           <div className="form-group">
             <label>Priority</label>
             <select
+              disabled={!isOwner}
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
               style={{
@@ -126,6 +142,7 @@ export default function TaskModal({ task, onClose, onDelete }) {
             <label>Due Date {isOverdue && <span className="overdue-badge">Overdue!</span>}</label>
             <input
               type="date"
+              disabled={!isOwner}
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               style={{
@@ -139,6 +156,7 @@ export default function TaskModal({ task, onClose, onDelete }) {
         <div className="form-group">
           <label>List</label>
           <select
+            disabled={!isOwner}
             value={selectedList}
             onChange={(e) => setSelectedList(e.target.value)}
           >
@@ -151,18 +169,37 @@ export default function TaskModal({ task, onClose, onDelete }) {
           </select>
         </div>
 
-        {/* Members Section */}
-        {currentBoard?.members && (
+        {/* Members Section (owner only) */}
+        {currentBoard?.members && isOwner && (
           <div className="form-group">
-            <label>Board Members</label>
+            <label>Assign Members</label>
             <div className="members-list">
               {currentBoard.members.map((member) => (
-                <div key={member._id} className="member-item">
-                  <div className="member-avatar">
-                    {member.name?.charAt(0).toUpperCase() || "?"}
-                  </div>
-                  <span>{member.name || member.email}</span>
-                </div>
+                <button
+                  type="button"
+                  key={member._id}
+                  className={`member-item${
+                    assignedUserIds.includes(member._id)
+                      ? " member-item--selected"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    setAssignedUserIds((prev) =>
+                      prev.includes(member._id)
+                        ? prev.filter((id) => id !== member._id)
+                        : [...prev, member._id]
+                    );
+                  }}
+                >
+                  <span className="member-avatar">
+                    {member.name?.charAt(0).toUpperCase() ||
+                      member.email?.charAt(0).toUpperCase() ||
+                      "?"}
+                  </span>
+                  <span className="member-name">
+                    {member.name || member.email}
+                  </span>
+                </button>
               ))}
             </div>
           </div>
@@ -182,17 +219,25 @@ export default function TaskModal({ task, onClose, onDelete }) {
 
         {/* Actions */}
         <div className="modal-actions">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="btn-save"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
+          {isOwner ? (
+            <>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="btn-save"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
 
-          <button onClick={onDelete} className="btn-delete">
-            🗑️ Delete
-          </button>
+              <button onClick={onDelete} className="btn-delete">
+                🗑️ Delete
+              </button>
+            </>
+          ) : (
+            <button onClick={onClose} className="btn-save">
+              Close
+            </button>
+          )}
         </div>
       </div>
     </div>

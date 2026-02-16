@@ -1,112 +1,84 @@
-import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createListAPI } from "../../api/boardApi";
-import { addList } from "../../features/board/boardSlice";
+import { deleteListAPI } from "../../api/boardApi";
+import { deleteList } from "../../features/board/boardSlice";
+import ListHeader from "./ListHeader";
+import TaskCard from "../Task/TaskCard";
+import AddTask from "../Task/AddTask";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-export default function AddList({ boardId }) {
-  const [title, setTitle] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
-  const { userInfo } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
+function SortableTask({ task }) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: task._id });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
-    try {
-      const newList = await createListAPI(
-        {
-          title,
-          board: boardId,
-        },
-        userInfo.token
-      );
-
-      dispatch(addList(newList));
-      setTitle("");
-      setIsAdding(false);
-    } catch (error) {
-      console.error("Create list error:", error);
-    }
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
   };
 
-  if (!isAdding) {
-    return (
-      <div
-        onClick={() => setIsAdding(true)}
-        style={{
-          minWidth: "280px",
-          padding: "12px",
-          background: "rgba(255, 255, 255, 0.24)",
-          borderRadius: "10px",
-          cursor: "pointer",
-          color: "white",
-          fontWeight: "500",
-        }}
-      >
-        + Add another list
-      </div>
-    );
-  }
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <TaskCard task={task} />
+    </div>
+  );
+}
+
+export default function ListCard({ list, tasks, boardId }) {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const handleDeleteList = async () => {
+    if (!window.confirm("Delete this list?")) return;
+
+    try {
+      await deleteListAPI(list._id, userInfo.token);
+      dispatch(deleteList(list._id));
+    } catch (error) {
+      console.error("Delete list error:", error);
+    }
+  };
 
   return (
     <div
       style={{
         minWidth: "280px",
-        padding: "12px",
+        maxWidth: "280px",
         background: "#ebecf0",
         borderRadius: "10px",
+        padding: "12px",
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "100%",
       }}
     >
-      <form onSubmit={handleSubmit}>
-        <input
-          autoFocus
-          placeholder="Enter list title..."
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "8px",
-            border: "2px solid #0079bf",
-            borderRadius: "4px",
-            fontSize: "14px",
-            marginBottom: "8px",
-          }}
-        />
+      <ListHeader
+        title={list.title}
+        taskCount={tasks.length}
+        onDelete={handleDeleteList}
+      />
 
-        <div style={{ display: "flex", gap: "6px" }}>
-          <button
-            type="submit"
-            style={{
-              padding: "8px 16px",
-              background: "#0079bf",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Add List
-          </button>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          marginBottom: "8px",
+        }}
+      >
+        <SortableContext
+          items={tasks.map((task) => task._id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {tasks.map((task) => (
+            <SortableTask key={task._id} task={task} />
+          ))}
+        </SortableContext>
+      </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setTitle("");
-              setIsAdding(false);
-            }}
-            style={{
-              padding: "8px 16px",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "20px",
-            }}
-          >
-            ✕
-          </button>
-        </div>
-      </form>
+      <AddTask listId={list._id} boardId={boardId} />
     </div>
   );
 }

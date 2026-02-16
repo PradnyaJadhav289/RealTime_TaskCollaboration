@@ -25,3 +25,44 @@
   margin-bottom: 12px;
   padding: 8px;
 }
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #dfe1e6;
+  background: #f4f5f7;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.member-item--selected {
+  border-color: #0079bf;
+  background: #e4f0f6;
+}
+
+.member-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0079bf;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.member-name {
+  flex: 1;
+  text-align: left;
+}

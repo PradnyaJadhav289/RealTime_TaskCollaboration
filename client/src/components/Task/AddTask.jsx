@@ -9,11 +9,18 @@ export default function AddTask({ listId, boardId }) {
   const [loading, setLoading] = useState(false);
 
   const { userInfo } = useSelector((state) => state.auth);
+  const { currentBoard } = useSelector((state) => state.board);
   const dispatch = useDispatch();
+
+  const isOwner =
+    currentBoard?.owner &&
+    userInfo?._id &&
+    currentBoard.owner === userInfo._id;
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (!isOwner || !userInfo?.token) return;
 
     try {
       setLoading(true);
@@ -35,6 +42,10 @@ export default function AddTask({ listId, boardId }) {
       setLoading(false);
     }
   };
+
+  if (!isOwner) {
+    return null;
+  }
 
   if (!open) {
     return (

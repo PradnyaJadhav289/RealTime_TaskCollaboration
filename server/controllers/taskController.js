@@ -1,5 +1,6 @@
 import Task from "../models/Task.js";
 import ActivityLog from "../models/ActivityLog.js";
+import Board from "../models/Board.js";
 import { getIO } from "../config/socket.js";
 
 import {
@@ -13,6 +14,18 @@ import {
 // ============================
 export const createTask = async (req, res) => {
   try {
+    const board = await Board.findById(req.body.board);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found" });
+    }
+
+    if (board.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Only the board owner can create tasks",
+      });
+    }
+
     const task = await Task.create({
       title: req.body.title,
       board: req.body.board,
@@ -20,7 +33,11 @@ export const createTask = async (req, res) => {
       createdBy: req.user._id,
     });
 
-    res.status(201).json(task);
+    const populatedTask = await Task.findById(task._id)
+      .populate("createdBy", "name email")
+      .populate("assignedUsers", "name email");
+
+    res.status(201).json(populatedTask);
 
   } catch (error) {
     console.log("TASK CREATE ERROR:", error.message);
@@ -37,7 +54,10 @@ export const getTasks = async (req, res) => {
 
     const tasks = await Task.find({
       board: boardId,
-    });
+    })
+      .sort("order")
+      .populate("createdBy", "name email")
+      .populate("assignedUsers", "name email");
 
     res.json(tasks);
 
@@ -51,6 +71,52 @@ export const getTasks = async (req, res) => {
 // ============================
 export const updateTask = async (req, res) => {
   try {
+    const existingTask = await Task.findById(req.params.id);
+
+    if (!existingTask) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    const board = await Board.findById(existingTask.board);
+
+    if (!board) {
+      return res.status(404).json({
+        message: "Board not found",
+      });
+    }
+
+    const userId = req.user._id.toString();
+    const isOwner = board.owner.toString() === userId;
+    const isAssigned =
+      Array.isArray(existingTask.assignedUsers) &&
+      existingTask.assignedUsers.some(
+        (u) => u.toString() === userId
+      );
+
+    // Only board owner can edit task details or assignment.
+    // Assigned users may only move tasks (list/order).
+    if (!isOwner) {
+      if (!isAssigned) {
+        return res.status(403).json({
+          message:
+            "Only the board owner or assigned users can move this task",
+        });
+      }
+
+      const allowedKeys = ["list", "order"];
+      const bodyKeys = Object.keys(req.body || {});
+      const hasDisallowed = bodyKeys.some(
+        (key) => !allowedKeys.includes(key)
+      );
+
+      if (hasDisallowed) {
+        return res.status(403).json({
+          message: "Only the board owner can edit task details",
+        });
+      }
+    }
 
     const updatedTask = await updateTaskService(
       req.params.id,
@@ -83,6 +149,27 @@ export const updateTask = async (req, res) => {
 // ============================
 export const deleteTask = async (req, res) => {
   try {
+    const existingTask = await Task.findById(req.params.id);
+
+    if (!existingTask) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    const board = await Board.findById(existingTask.board);
+
+    if (!board) {
+      return res.status(404).json({
+        message: "Board not found",
+      });
+    }
+
+    if (board.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Only the board owner can delete tasks",
+      });
+    }
 
     const deletedTask = await deleteTaskService(
       req.params.id
