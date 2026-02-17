@@ -29,8 +29,7 @@ export default function BoardContainer() {
 
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState(null);
-  
-  // Separate state for input and applied filters
+
   const [filters, setFilters] = useState({
     search: "",
     priority: "all",
@@ -38,7 +37,7 @@ export default function BoardContainer() {
     assignedTo: "all",
     listId: "all",
   });
-  
+
   const [appliedFilters, setAppliedFilters] = useState({
     search: "",
     priority: "all",
@@ -49,7 +48,6 @@ export default function BoardContainer() {
 
   useSocket(id, userInfo?.token);
 
-  // Configure sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -58,7 +56,6 @@ export default function BoardContainer() {
     })
   );
 
-  // Fetch data only when appliedFilters change
   useEffect(() => {
     fetchData();
   }, [id, userInfo, appliedFilters]);
@@ -90,9 +87,9 @@ export default function BoardContainer() {
     }
   };
 
-  // Apply filters function - triggered by Enter or button click
-  const applyFilters = () => {
-    setAppliedFilters({ ...filters });
+  // Fix: accept optional overrideFilters to avoid stale state from child
+  const applyFilters = (overrideFilters) => {
+    setAppliedFilters(overrideFilters || { ...filters });
   };
 
   const getTasksByList = (listId) => {
@@ -115,19 +112,18 @@ export default function BoardContainer() {
     if (!over || !active || active.id === over.id) return;
 
     const activeTask = tasks.find((t) => t._id === active.id);
-    
+
     let targetListId;
     const overTask = tasks.find((t) => t._id === over.id);
-    
+
     if (overTask) {
       targetListId = overTask.list?._id || overTask.list;
     } else {
-      targetListId = over.id; // Dropping directly on list
+      targetListId = over.id;
     }
 
     if (!activeTask || !targetListId) return;
 
-    // Optimistic update
     dispatch(
       moveTask({
         taskId: activeTask._id,
@@ -136,7 +132,6 @@ export default function BoardContainer() {
       })
     );
 
-    // Persist to server
     try {
       await updateTaskAPI(activeTask._id, { list: targetListId }, userInfo.token);
     } catch (error) {

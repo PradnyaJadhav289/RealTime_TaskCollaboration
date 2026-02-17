@@ -17,16 +17,12 @@ export default function SearchAndFilter({ filters, setFilters, applyFilters, lis
     }
   };
 
+  // Fix: pass newFilters directly to avoid stale closure
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    // Auto-apply for dropdown filters (not search)
     if (key !== "search") {
-      setFilters(newFilters);
-      // Use setTimeout to ensure state is updated
-      setTimeout(() => {
-        applyFilters();
-      }, 0);
+      applyFilters(newFilters);
     }
   };
 
@@ -39,9 +35,7 @@ export default function SearchAndFilter({ filters, setFilters, applyFilters, lis
       listId: "all",
     };
     setFilters(clearedFilters);
-    setTimeout(() => {
-      applyFilters();
-    }, 0);
+    applyFilters(clearedFilters);
   };
 
   const hasActiveFilters =
@@ -66,8 +60,9 @@ export default function SearchAndFilter({ filters, setFilters, applyFilters, lis
         {filters.search && (
           <button
             onClick={() => {
-              setFilters({ ...filters, search: "" });
-              setTimeout(() => applyFilters(), 0);
+              const newFilters = { ...filters, search: "" };
+              setFilters(newFilters);
+              applyFilters(newFilters);
             }}
             className="clear-search-btn"
           >
@@ -75,7 +70,7 @@ export default function SearchAndFilter({ filters, setFilters, applyFilters, lis
           </button>
         )}
         <button
-          onClick={applyFilters}
+          onClick={() => applyFilters()}
           className="search-apply-btn"
           title="Apply search"
         >

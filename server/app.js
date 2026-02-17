@@ -18,8 +18,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      process.env.CLIENT_URL,
-      "http://localhost:5173",
+      process.env.CLIENT_URL||"http://localhost:5173",
       
     ],
     credentials: true,
@@ -51,10 +50,10 @@ app.get("/", (req, res) => {
 });
 
 // API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/boards", boardRoutes);
-app.use("/api/lists", listRoutes);
-app.use("/api/tasks", taskRoutes);
+app.use("/auth", authRoutes);
+app.use("/boards", boardRoutes);
+app.use("/lists", listRoutes);
+app.use("/tasks", taskRoutes);
 
 // 404 Handler
 app.use((req, res) => {
