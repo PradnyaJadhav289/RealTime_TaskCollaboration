@@ -2,10 +2,10 @@
 Real-Time Task Collaboration Platform
 🔗 Live Demo
 # Frontend (Vercel): 
-https://real-time-task-collaboration-c-git-7349ec-pjadhav1234s-projects.vercel.app/
+https://real-time-task-collaboration.vercel.app/
 
 # Backend (Render): 
-https://realtime-taskcollaboration-3.onrender.com
+https://realtime-taskcollaboration-4.onrender.com
 
 # GitHub Repository: 
 https://github.com/PradnyaJadhav289/RealTime_TaskCollaboration
