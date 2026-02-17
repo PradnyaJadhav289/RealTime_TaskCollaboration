@@ -11,18 +11,30 @@ export const useSocket = (boardId, userToken) => {
   useEffect(() => {
     if (!boardId || !userToken) return;
 
-    // Initialize socket connection
-    socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:5000", {
+    // Strip trailing slash from API URL
+    const serverUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
+
+    socket = io(serverUrl, {
       auth: {
         token: userToken,
       },
       withCredentials: true,
+      transports: ["websocket", "polling"],
+      // Reconnection settings — important for Render free tier (cold starts)
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      timeout: 20000,
     });
 
-    // Join board room
-    socket.emit("join_board", boardId);
+    // Join board room after connecting
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+      socket.emit("join_board", boardId);
+    });
 
-    // Listen for task events
+    // Task events
     socket.on("task_created", (task) => {
       dispatch(addTask(task));
     });
@@ -39,22 +51,23 @@ export const useSocket = (boardId, userToken) => {
       dispatch(deleteTask(taskId));
     });
 
-    // Connection events
-    socket.on("connect", () => {
-      console.log("✅ Socket connected:", socket.id);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("❌ Socket disconnected");
+    socket.on("disconnect", (reason) => {
+      console.warn("❌ Socket disconnected:", reason);
     });
 
     socket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
+      console.error("Socket connection error:", error.message);
     });
 
-    // Cleanup
+    socket.on("reconnect", (attempt) => {
+      console.log(`🔄 Socket reconnected after ${attempt} attempts`);
+      socket.emit("join_board", boardId);
+    });
+
+    // Cleanup on unmount
     return () => {
       if (socket) {
+        socket.emit("leave_board", boardId);
         socket.off("task_created");
         socket.off("task_updated");
         socket.off("task_moved");
@@ -62,6 +75,7 @@ export const useSocket = (boardId, userToken) => {
         socket.off("connect");
         socket.off("disconnect");
         socket.off("connect_error");
+        socket.off("reconnect");
         socket.disconnect();
         socket = null;
       }

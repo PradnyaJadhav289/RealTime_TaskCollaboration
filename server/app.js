@@ -2,75 +2,112 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-// Import routes
 import authRoutes from "./routes/authRoutes.js";
 import boardRoutes from "./routes/boardRoutes.js";
 import listRoutes from "./routes/listRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
-// Load environment variables
 dotenv.config();
 
-// Initialize Express app
 const app = express();
 
-// CORS Configuration
+// ─────────────────────────────────────────────
+// BUILD ALLOWED ORIGINS LIST
+// Strips trailing slashes to prevent CORS mismatch
+// ─────────────────────────────────────────────
+const rawClientUrl = (process.env.CLIENT_URL || "").replace(/\/$/, "");
+
+const allowedOrigins = [
+  rawClientUrl,                          // Your Vercel frontend (from .env)
+  "http://localhost:5173",               // Local Vite dev
+  "http://localhost:3000",               // Local CRA dev (if any)
+].filter(Boolean);
+
+console.log("✅ Allowed CORS origins:", allowedOrigins);
+
+// ─────────────────────────────────────────────
+// CORS — handles Vercel preview URLs too
+// ─────────────────────────────────────────────
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL||"http://localhost:5173",
-      
-    ],
+    origin: (origin, callback) => {
+      // Allow Postman / curl / mobile (no origin header)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/$/, "");
+
+      // Allow exact matches
+      if (allowedOrigins.includes(cleanOrigin)) {
+        return callback(null, true);
+      }
+
+      // Allow ALL Vercel preview deployment URLs for your project
+      // e.g. your-app-git-main-username.vercel.app
+      if (cleanOrigin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      console.warn(`❌ CORS blocked: ${origin}`);
+      callback(new Error(`CORS policy blocked: ${origin}`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-
-// Body Parser Middleware
+// ─────────────────────────────────────────────
+// BODY PARSERS
+// ─────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request Logger Middleware (Development)
-if (process.env.NODE_ENV === "development") {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-  });
-}
+// ─────────────────────────────────────────────
+// REQUEST LOGGER
+// ─────────────────────────────────────────────
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} — origin: ${req.headers.origin || "none"}`);
+  next();
+});
 
-// Health Check Route
+// ─────────────────────────────────────────────
+// HEALTH CHECK
+// ─────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({
     message: "🚀 Task Collaboration API is running!",
     version: "1.0.0",
     status: "healthy",
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
-// API Routes
+// ─────────────────────────────────────────────
+// API ROUTES — no /api prefix, matches frontend
+// ─────────────────────────────────────────────
 app.use("/auth", authRoutes);
 app.use("/boards", boardRoutes);
 app.use("/lists", listRoutes);
 app.use("/tasks", taskRoutes);
 
-// 404 Handler
+// ─────────────────────────────────────────────
+// 404 HANDLER
+// ─────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: `Route not found: ${req.method} ${req.path}`,
   });
 });
 
-// Global Error Handler
+// ─────────────────────────────────────────────
+// GLOBAL ERROR HANDLER
+// ─────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error("❌ Error:", err.stack);
-
+  console.error("❌ Error:", err.message);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 });
 
